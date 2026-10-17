@@ -6,6 +6,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Coin } from '@/components/coin';
 import { Icon, type IconName } from '@/components/icon';
+import { OrderDocuments } from '@/components/order-documents';
 import { OrderTimeline } from '@/components/order-progress';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
@@ -13,6 +14,7 @@ import { Colors, Space } from '@/constants/theme';
 import { orders, stores } from '@/data/mock';
 import type { OrderItem } from '@/data/types';
 import { formatDate, formatNumber, formatRupees, formatShortDate } from '@/lib/format';
+import { useCustomer } from '@/lib/app-state';
 import { isActive, stageLabel } from '@/lib/orders';
 
 const ITEM_ICONS: Record<OrderItem['itemGroup'], IconName> = {
@@ -36,6 +38,7 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const customer = useCustomer();
   const order = orders.find((o) => o.id === id);
 
   if (!order) {
@@ -104,6 +107,8 @@ export default function OrderDetailsScreen() {
           </Text>
         </View>
       </Card>
+
+      <OrderDocuments order={order} customer={customer} />
 
       {/* Store */}
       <Card style={styles.gap}>

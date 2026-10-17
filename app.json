@@ -32,7 +32,8 @@
           "image": "./assets/images/specsmakers-logo.png",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

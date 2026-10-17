@@ -54,6 +54,11 @@ export interface Order {
   total: number;
   coinsEarned: number;
   coinsRedeemed: number;
+  advancePaid: number;
+  balancePaid: number;
+  // Raised when the order is delivered or picked up.
+  invoiceNo?: string;
+  invoiceDate?: string;
 }
 
 export interface RxEye {
@@ -79,7 +84,7 @@ export interface Prescription {
 export interface FamilyMember {
   id: string;
   name: string;
-  relation: 'Self' | 'Spouse' | 'Son' | 'Daughter' | 'Father' | 'Mother';
+  relation: 'Self' | 'Spouse' | 'Son' | 'Daughter' | 'Father' | 'Mother' | 'Sister' | 'Brother';
   age: number;
   avatarColor: string;
   prescriptions: Prescription[];

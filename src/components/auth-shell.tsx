@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Keyboard, KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Icon, type IconName } from '@/components/icon';
@@ -16,7 +16,29 @@ const PERKS: { icon: IconName; label: string }[] = [
   { icon: 'eye', label: 'Family Rx' },
 ];
 
+function useKeyboardVisible() {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setVisible(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  return visible;
+}
+
 export function AuthShell({ children, compact }: { children: ReactNode; compact?: boolean }) {
+  const keyboardVisible = useKeyboardVisible();
+  const scrollRef = useRef<ScrollView>(null);
+  // While typing, the headline gives way so the field and button stay above the keypad.
+  const collapsed = compact || keyboardVisible;
+
+  useEffect(() => {
+    if (keyboardVisible) requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
+  }, [keyboardVisible]);
+
   return (
     <View style={styles.root}>
       <LinearGradient colors={Gradients.hero} style={StyleSheet.absoluteFill} />
@@ -27,21 +49,24 @@ export function AuthShell({ children, compact }: { children: ReactNode; compact?
         style={styles.glow}
       />
       <SafeAreaView style={styles.flex} edges={['top']}>
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {/* Expo Go on Android is edge-to-edge, so the window no longer resizes for the
+            keyboard; padding is needed on both platforms. */}
+        <KeyboardAvoidingView style={styles.flex} behavior="padding">
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.scroll}
             keyboardShouldPersistTaps="handled"
             bounces={false}
             showsVerticalScrollIndicator={false}
           >
-            <View style={[styles.hero, compact && styles.heroCompact]}>
+            <View style={[styles.hero, collapsed && styles.heroCompact]}>
               <Image
                 source={require('@/assets/images/specsmakers-logo-white.png')}
                 style={styles.logo}
                 contentFit="contain"
                 accessibilityLabel="Specsmakers"
               />
-              {!compact ? (
+              {!collapsed ? (
                 <View style={styles.heroText}>
                   <Text variant="display" color={Colors.textOnDark}>
                     See better.{'\n'}
@@ -79,7 +104,7 @@ const styles = StyleSheet.create({
   glow: { position: 'absolute', top: 0, right: 0, width: '100%', height: 420 },
   scroll: { flexGrow: 1 },
   hero: { flex: 1, minHeight: 300, paddingHorizontal: Space.xxl, paddingTop: Space.xl, gap: Space.xxl },
-  heroCompact: { minHeight: 140 },
+  heroCompact: { flex: 0, minHeight: 0, paddingBottom: Space.xl },
   logo: { height: 26, aspectRatio: LOGO_ASPECT_RATIO },
   heroText: { flex: 1, justifyContent: 'flex-end', gap: Space.md, paddingBottom: Space.xxl },
   perks: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm, marginTop: Space.sm },
@@ -95,12 +120,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   sheet: {
+    flexGrow: 1,
     backgroundColor: Colors.surface,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     paddingHorizontal: Space.xxl,
     paddingTop: Space.xxl,
-    paddingBottom: Space.xxxl + 8,
+    paddingBottom: Space.xxxl + 16,
     gap: Space.xl,
   },
 });

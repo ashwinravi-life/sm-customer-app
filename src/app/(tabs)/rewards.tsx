@@ -1,32 +1,20 @@
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Chips, IconBubble, ProgressBar, SectionHeader } from '@/components/bits';
+import { IconBubble, ProgressBar, SectionHeader } from '@/components/bits';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Coin } from '@/components/coin';
+import { CoinStatement } from '@/components/coin-statement';
 import { Icon, type IconName } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
 import { Colors, Gradients, Radius, Space } from '@/constants/theme';
 import { EARN_RULES, TIERS } from '@/data/mock';
-import type { CoinSource } from '@/data/types';
 import { useAppState } from '@/lib/app-state';
-import { formatDate, formatNumber, formatRupees } from '@/lib/format';
+import { formatNumber, formatRupees } from '@/lib/format';
 import { tap } from '@/lib/haptics';
-
-type Filter = 'all' | 'earned' | 'redeemed';
-
-const SOURCE_STYLE: Record<CoinSource, { icon: IconName; color: string; bg: string }> = {
-  purchase: { icon: 'bag-handle', color: Colors.tealDeep, bg: Colors.tealSoft },
-  walk_in: { icon: 'walk', color: Colors.sky, bg: Colors.skySoft },
-  eye_test: { icon: 'eye', color: Colors.purple, bg: Colors.purpleSoft },
-  referral_join: { icon: 'person-add', color: Colors.coral, bg: Colors.coralSoft },
-  referral_purchase: { icon: 'gift', color: Colors.coral, bg: Colors.coralSoft },
-  redeemed: { icon: 'flash', color: '#B7791F', bg: Colors.coinSoft },
-};
 
 const WAYS_TO_EARN: { icon: IconName; title: string; value: string; color: string; bg: string; onPress?: () => void }[] = [
   { icon: 'bag-handle', title: 'Every purchase', value: `${EARN_RULES.purchasePercent}% back`, color: Colors.tealDeep, bg: Colors.tealSoft },
@@ -44,11 +32,6 @@ const WAYS_TO_EARN: { icon: IconName; title: string; value: string; color: strin
 
 export default function RewardsScreen() {
   const { coinBalance, lifetimeCoins, tier, nextTier, coinEntries } = useAppState();
-  const [filter, setFilter] = useState<Filter>('all');
-
-  const entries = coinEntries.filter((e) =>
-    filter === 'all' ? true : filter === 'earned' ? e.points > 0 : e.points < 0,
-  );
 
   return (
     <Screen>
@@ -127,47 +110,14 @@ export default function RewardsScreen() {
 
       {/* History */}
       <View style={styles.section}>
-        <SectionHeader title="Coin history" />
-        <Chips<Filter>
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { value: 'all', label: 'All' },
-            { value: 'earned', label: 'Earned' },
-            { value: 'redeemed', label: 'Redeemed' },
-          ]}
-        />
-        <Card padded={false}>
-          {entries.map((entry, i) => {
-            const s = SOURCE_STYLE[entry.source];
-            const earned = entry.points > 0;
-            return (
-              <View key={entry.id} style={[styles.entry, i > 0 && styles.entryBorder]}>
-                <IconBubble name={s.icon} color={s.color} background={s.bg} size={40} />
-                <View style={styles.flex}>
-                  <Text variant="bodyStrong" numberOfLines={1}>
-                    {entry.title}
-                  </Text>
-                  <Text variant="caption">
-                    {formatDate(entry.date)}
-                    {entry.reference ? ` · ${entry.reference}` : ''}
-                  </Text>
-                </View>
-                <Text variant="h3" color={earned ? Colors.success : Colors.text}>
-                  {earned ? '+' : '−'}
-                  {formatNumber(Math.abs(entry.points))}
-                </Text>
-              </View>
-            );
-          })}
-        </Card>
+        <SectionHeader title="Coin statement" />
+        <CoinStatement entries={coinEntries} />
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
   gap: { gap: Space.md },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   balanceCard: { borderRadius: Radius.xl, padding: Space.xxl, gap: Space.xs },
@@ -193,6 +143,4 @@ const styles = StyleSheet.create({
     padding: Space.lg,
     gap: 4,
   },
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.lg },
-  entryBorder: { borderTopWidth: 1, borderTopColor: Colors.border },
 });
