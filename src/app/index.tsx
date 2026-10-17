@@ -1,98 +1,96 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { StyleSheet, TextInput, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppButton } from '@/components/app-button';
+import { AppText } from '@/components/app-text';
+import { Screen } from '@/components/screen';
+import { Colors, Fonts, Radius, Spacing } from '@/constants/theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+const MOBILE_LENGTH = 10;
+
+export default function LoginScreen() {
+  const [mobile, setMobile] = useState('');
+  const [focused, setFocused] = useState(false);
+  const isValid = /^\d{10}$/.test(mobile);
+
+  const handleSendCode = () => {
+    if (!isValid) return;
+    router.navigate({ pathname: '/verify', params: { mobile } });
+  };
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <Screen>
+      <View style={styles.heading}>
+        <AppText variant="title">Login</AppText>
+        <AppText variant="muted">Enter your mobile number to continue.</AppText>
+      </View>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+      <View style={styles.field}>
+        <AppText variant="label">
+          Mobile Number <AppText style={styles.required}>*</AppText>
+        </AppText>
+        <View style={[styles.inputRow, focused && styles.inputRowFocused]}>
+          <AppText style={styles.prefix}>+91</AppText>
+          <TextInput
+            value={mobile}
+            onChangeText={(text) => setMobile(text.replace(/\D/g, '').slice(0, MOBILE_LENGTH))}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onSubmitEditing={handleSendCode}
+            placeholder="10-digit mobile number"
+            placeholderTextColor={Colors.mutedForeground}
+            keyboardType="number-pad"
+            textContentType="telephoneNumber"
+            autoComplete="tel"
+            maxLength={MOBILE_LENGTH}
+            autoFocus
+            accessibilityLabel="Mobile number"
+            style={[styles.input, mobile.length === 0 && styles.inputPlaceholder]}
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        </View>
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <View style={styles.actions}>
+        <AppButton title="Send Code" onPress={handleSendCode} disabled={!isValid} />
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  heading: { gap: Spacing.xs },
+  field: { gap: Spacing.sm },
+  required: { color: Colors.destructive },
+  inputRow: {
     flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    height: 56,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: Radius.field,
+    overflow: 'hidden',
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  inputRowFocused: { borderColor: Colors.teal },
+  prefix: {
+    fontFamily: Fonts.bold,
+    fontSize: 20,
+    color: Colors.mutedForeground,
+    backgroundColor: Colors.muted,
+    height: '100%',
+    paddingHorizontal: 14,
+    textAlignVertical: 'center',
+    lineHeight: 52,
+  },
+  input: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    height: '100%',
+    paddingHorizontal: 14,
+    fontFamily: Fonts.bold,
+    fontSize: 20,
+    letterSpacing: 1.5,
+    color: Colors.foreground,
   },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  inputPlaceholder: { fontFamily: Fonts.regular, fontSize: 16, letterSpacing: 0 },
+  actions: { flexDirection: 'row' },
 });
