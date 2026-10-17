@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 
@@ -74,16 +74,30 @@ function buildHtml(stores: Store[], you: StoreMapProps['you'], selectedId: strin
   pts.push([${you.latitude}, ${you.longitude}]);
   map.fitBounds(pts, { padding: [40, 40], maxZoom: 14 });
   select(${JSON.stringify(selectedId)});
+
+  // Called from React Native when a store is picked in the list.
+  window.focusStore = function (id) {
+    var s = stores.find(function (x) { return x.id === id; });
+    if (!s) return;
+    select(id);
+    map.flyTo([s.lat, s.lng], Math.max(map.getZoom(), 13), { duration: 0.6 });
+  };
 </script></body></html>`;
 }
 
 export function StoreMap({ stores, you, selectedId, onSelect }: StoreMapProps) {
-  // Built once per store list; later selections come from taps inside the map.
+  const webRef = useRef<WebView>(null);
+  // Built once per store list; selection changes are pushed in via focusStore().
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const html = useMemo(() => buildHtml(stores, you, selectedId), [stores, you]);
 
+  useEffect(() => {
+    webRef.current?.injectJavaScript(`window.focusStore && window.focusStore(${JSON.stringify(selectedId)}); true;`);
+  }, [selectedId]);
+
   return (
     <WebView
+      ref={webRef}
       source={{ html, baseUrl: 'https://www.specsmakers.in/' }}
       originWhitelist={['*']}
       onMessage={(event) => onSelect(event.nativeEvent.data)}

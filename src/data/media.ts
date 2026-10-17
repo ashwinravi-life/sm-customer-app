@@ -31,6 +31,12 @@ export const PHOTOS = {
   sunglassesSandSun: pexelsPhoto(38890701),
   toddlerPlayground: pexelsPhoto(8909481),
   boyUkulele: pexelsPhoto(9302738),
+  storeShelf: pexelsPhoto(5201896),
+  storeEyeTest: pexelsPhoto(5621876),
+  storeFrameWall: pexelsPhoto(5202053),
+  storeWindow: pexelsPhoto(9474178),
+  storeBrowsing: pexelsPhoto(5201890),
+  storeFitting: pexelsPhoto(5201985),
 } as const;
 
 // 720p renditions keep each clip around 1.3–2.4 MB for smooth mobile playback.

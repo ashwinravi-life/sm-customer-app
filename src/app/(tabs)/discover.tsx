@@ -97,25 +97,31 @@ function CollectionTile({ collection }: { collection: Collection }) {
   );
 }
 
-function TopicGrid({ topics }: { topics: LearnTopic[] }) {
+// One entry card per lens guide; the guide page switches between options itself.
+function GuideCard({ title, subtitle, topics }: { title: string; subtitle: string; topics: LearnTopic[] }) {
   return (
-    <View style={styles.topicGrid}>
-      {topics.map((topic) => (
-        <Card
-          key={topic.id}
-          style={styles.topic}
-          onPress={() => router.push({ pathname: '/learn/[topic]', params: { topic: topic.id } })}
-        >
-          <IconBubble name={topic.icon} color={topic.accent.fg} background={topic.accent.bg} size={40} />
-          <Text variant="captionStrong" numberOfLines={2}>
-            {topic.title}
-          </Text>
-          <Text variant="caption" numberOfLines={2}>
-            {topic.short}
-          </Text>
-        </Card>
-      ))}
-    </View>
+    <Card
+      style={styles.guide}
+      onPress={() => router.push({ pathname: '/learn/[topic]', params: { topic: topics[0].id } })}
+    >
+      <View style={styles.guideHead}>
+        <View style={styles.flex}>
+          <Text variant="h2">{title}</Text>
+          <Text variant="caption">{subtitle}</Text>
+        </View>
+        <View style={styles.guideArrow}>
+          <Icon name="arrow-forward" size={20} color={Colors.textOnDark} />
+        </View>
+      </View>
+      <View style={styles.guideIcons}>
+        {topics.map((t) => (
+          <IconBubble key={t.id} name={t.icon} color={t.accent.fg} background={t.accent.bg} size={38} />
+        ))}
+      </View>
+      <Text variant="caption" numberOfLines={2}>
+        {topics.map((t) => t.title).join(' · ')}
+      </Text>
+    </Card>
   );
 }
 
@@ -299,12 +305,9 @@ export default function DiscoverScreen() {
 
           {/* Lens guides */}
           <View style={styles.section}>
-            <SectionHeader title="Choose lenses" />
-            <TopicGrid topics={choose} />
-          </View>
-          <View style={styles.section}>
-            <SectionHeader title="Improve lenses" />
-            <TopicGrid topics={improve} />
+            <SectionHeader title="Lens guides" />
+            <GuideCard title="Choose lenses" subtitle={`${choose.length} lens types, explained visually`} topics={choose} />
+            <GuideCard title="Improve lenses" subtitle={`${improve.length} coatings, before and after`} topics={improve} />
           </View>
 
           <Card onPress={() => router.push('/face-shapes')} style={styles.face}>
@@ -418,8 +421,17 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-8deg' }],
   },
   gameE: { fontSize: 44, lineHeight: 50, fontWeight: '900', color: Colors.ink },
-  topicGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.md },
-  topic: { width: '47%', flexGrow: 1, gap: 6, padding: Space.md },
+  guide: { gap: Space.md },
+  guideHead: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  guideArrow: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideIcons: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
   face: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   faceArt: { gap: 4 },
   credit: { marginTop: -Space.lg },

@@ -99,7 +99,16 @@ export interface Offer {
   validTill: string;
   minOrder?: number;
   accent: 'teal' | 'coral' | 'purple' | 'sky' | 'coin';
+  // Headline shown big on the coupon, e.g. "40%" + "OFF".
+  value: string;
+  valueLabel: string;
+  terms: string[];
+  image?: string;
+  // Only for SM Club members of this tier and above.
+  exclusiveTier?: 'Gold' | 'Platinum';
 }
+
+export type StoreService = 'Eye test' | 'Contact lens' | 'Repairs' | 'Kids corner';
 
 export interface Store {
   id: string;
@@ -108,11 +117,14 @@ export interface Store {
   address: string;
   city: string;
   phone: string;
-  hours: string;
+  // Same every day, in 24h "HH:MM" form.
+  opensAt: string;
+  closesAt: string;
   distanceKm: number;
   latitude: number;
   longitude: number;
-  services: string[];
+  services: StoreService[];
+  photos: string[];
 }
 
 export interface Referral {

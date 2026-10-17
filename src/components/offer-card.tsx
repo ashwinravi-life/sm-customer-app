@@ -1,24 +1,25 @@
 import * as Clipboard from 'expo-clipboard';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Divider } from '@/components/bits';
 import { Icon, type IconName } from '@/components/icon';
 import { Text } from '@/components/text';
-import { Colors, Fonts, Radius, Shadow, Space } from '@/constants/theme';
+import { Colors, Fonts, Gradients, Radius, Shadow, Space } from '@/constants/theme';
 import type { Offer } from '@/data/types';
-import { formatDate, formatRupees } from '@/lib/format';
-import { success } from '@/lib/haptics';
+import { daysUntil, formatRupees } from '@/lib/format';
+import { select, success } from '@/lib/haptics';
 
-const ACCENTS: Record<Offer['accent'], { fg: string; bg: string }> = {
-  teal: { fg: Colors.tealDeep, bg: Colors.tealSoft },
-  coral: { fg: Colors.coral, bg: Colors.coralSoft },
-  purple: { fg: Colors.purple, bg: Colors.purpleSoft },
-  sky: { fg: Colors.sky, bg: Colors.skySoft },
-  coin: { fg: '#B7791F', bg: Colors.coinSoft },
+export const OFFER_ACCENTS: Record<Offer['accent'], { fg: string; bg: string; solid: string }> = {
+  teal: { fg: Colors.tealDeep, bg: Colors.tealSoft, solid: Colors.teal },
+  coral: { fg: Colors.coral, bg: Colors.coralSoft, solid: Colors.coral },
+  purple: { fg: Colors.purple, bg: Colors.purpleSoft, solid: Colors.purple },
+  sky: { fg: Colors.sky, bg: Colors.skySoft, solid: Colors.sky },
+  coin: { fg: '#B7791F', bg: Colors.coinSoft, solid: Colors.coin },
 };
 
-const CATEGORY_ICONS: Record<Offer['category'], IconName> = {
+export const CATEGORY_ICONS: Record<Offer['category'], IconName> = {
   Frames: 'glasses-outline',
   Lenses: 'aperture-outline',
   Sunglasses: 'sunny-outline',
@@ -37,87 +38,267 @@ function useCopy(code: string) {
   return { copied, copy };
 }
 
-// Ticket-style coupon: details on top, tear line, code + copy below.
+export function expiryLabel(validTill: string) {
+  const days = daysUntil(validTill);
+  if (days < 0) return { text: 'Expired', urgent: true };
+  if (days === 0) return { text: 'Ends today', urgent: true };
+  if (days === 1) return { text: 'Ends tomorrow', urgent: true };
+  return { text: `Ends in ${days} days`, urgent: days <= 7 };
+}
+
+function CodeBox({ code, dark }: { code: string; dark?: boolean }) {
+  const { copied, copy } = useCopy(code);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Copy code ${code}`}
+      onPress={copy}
+      style={({ pressed }) => [styles.codeBox, dark && styles.codeBoxDark, pressed && { opacity: 0.85 }]}
+    >
+      <Text style={[styles.code, dark && { color: Colors.textOnDark }]}>{code}</Text>
+      <View style={[styles.copy, copied && styles.copied]}>
+        <Icon name={copied ? 'checkmark' : 'copy-outline'} size={14} color={copied ? Colors.ink : Colors.textOnDark} />
+        <Text variant="captionStrong" color={copied ? Colors.ink : Colors.textOnDark}>
+          {copied ? 'Copied' : 'Copy'}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+// Ticket-style coupon: discount stub on the left, details on the right.
 export function OfferCard({ offer, compact }: { offer: Offer; compact?: boolean }) {
-  const accent = ACCENTS[offer.accent];
-  const { copied, copy } = useCopy(offer.code);
+  const accent = OFFER_ACCENTS[offer.accent];
+  const expiry = expiryLabel(offer.validTill);
+  const [open, setOpen] = useState(false);
 
   return (
-    <View style={[styles.card, compact && styles.compact]}>
-      <View style={[styles.top, { backgroundColor: accent.bg }]}>
-        <View style={styles.categoryRow}>
-          <Icon name={CATEGORY_ICONS[offer.category]} size={16} color={accent.fg} />
-          <Text variant="overline" color={accent.fg}>
-            {offer.category}
+    <View style={[styles.ticket, compact && styles.compact]}>
+      <View style={styles.ticketRow}>
+        <View style={[styles.stub, { backgroundColor: accent.solid }]}>
+          <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
+            {offer.value}
           </Text>
+          <Text style={styles.valueLabel}>{offer.valueLabel}</Text>
+          {/* Perforation */}
+          <View style={styles.perforation}>
+            {Array.from({ length: 7 }, (_, i) => (
+              <View key={i} style={styles.hole} />
+            ))}
+          </View>
         </View>
-        <Text variant="h2" numberOfLines={2}>
-          {offer.title}
-        </Text>
-        {!compact ? <Text variant="caption">{offer.description}</Text> : null}
-      </View>
 
-      <View style={styles.tear}>
-        <View style={[styles.notch, styles.notchLeft]} />
-        <View style={styles.tearLine}>
-          <Divider dashed />
+        <View style={styles.details}>
+          <View style={styles.categoryRow}>
+            <Icon name={CATEGORY_ICONS[offer.category]} size={14} color={accent.fg} />
+            <Text variant="overline" color={accent.fg}>
+              {offer.category}
+            </Text>
+            {offer.exclusiveTier ? (
+              <View style={styles.exclusive}>
+                <Icon name="diamond" size={10} color={Colors.coin} />
+                <Text style={styles.exclusiveText}>{offer.exclusiveTier}</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text variant="h3" numberOfLines={2}>
+            {offer.title}
+          </Text>
+          {!compact ? (
+            <Text variant="caption" numberOfLines={2}>
+              {offer.description}
+            </Text>
+          ) : null}
+          <View style={styles.metaRow}>
+            <Icon name="time-outline" size={13} color={expiry.urgent ? Colors.danger : Colors.textMuted} />
+            <Text variant="caption" color={expiry.urgent ? Colors.danger : Colors.textMuted}>
+              {expiry.text}
+              {offer.minOrder ? ` · Min ${formatRupees(offer.minOrder)}` : ''}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.notch, styles.notchRight]} />
       </View>
 
       <View style={styles.bottom}>
-        <View style={styles.codeInfo}>
-          <Text style={styles.code}>{offer.code}</Text>
-          <Text variant="caption" numberOfLines={1}>
-            Till {formatDate(offer.validTill)}
-            {offer.minOrder ? ` · Min ${formatRupees(offer.minOrder)}` : ''}
+        <View style={styles.flex}>
+          <CodeBox code={offer.code} />
+        </View>
+        {!compact ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: open }}
+            hitSlop={8}
+            onPress={() => {
+              select();
+              setOpen(!open);
+            }}
+            style={styles.detailsToggle}
+          >
+            <Text variant="captionStrong">Details</Text>
+            <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
+          </Pressable>
+        ) : null}
+      </View>
+
+      {open ? (
+        <View style={styles.terms}>
+          {offer.terms.map((t) => (
+            <View key={t} style={styles.term}>
+              <View style={styles.bullet} />
+              <Text variant="caption" style={styles.flex}>
+                {t}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.howTo}>
+            <Icon name="qr-code-outline" size={16} color={Colors.tealDeep} />
+            <Text variant="caption" style={styles.flex}>
+              Show this code with your member QR at billing.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+// Photo-led hero banner for the top of the offers screen.
+export function FeaturedOffer({ offer, width }: { offer: Offer; width: number }) {
+  const accent = OFFER_ACCENTS[offer.accent];
+  const expiry = expiryLabel(offer.validTill);
+  return (
+    <View style={[styles.featured, { width }]}>
+      {offer.image ? (
+        <Image source={{ uri: offer.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
+      ) : (
+        <LinearGradient colors={Gradients.hero} style={StyleSheet.absoluteFill} />
+      )}
+      <LinearGradient
+        colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.85)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.featuredTop}>
+        <View style={[styles.featuredPill, { backgroundColor: accent.solid }]}>
+          <Text variant="captionStrong" color={Colors.ink}>
+            {offer.category}
           </Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Copy code ${offer.code}`}
-          onPress={copy}
-          style={({ pressed }) => [styles.copy, copied && styles.copied, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name={copied ? 'checkmark' : 'copy-outline'} size={16} color={copied ? Colors.ink : Colors.textOnDark} />
-          <Text variant="captionStrong" color={copied ? Colors.ink : Colors.textOnDark}>
-            {copied ? 'Copied' : 'Copy'}
+        <View style={styles.featuredPillDark}>
+          <Icon name="time-outline" size={13} color={Colors.textOnDark} />
+          <Text variant="captionStrong" color={Colors.textOnDark}>
+            {expiry.text}
           </Text>
-        </Pressable>
+        </View>
+      </View>
+      <View style={styles.featuredBody}>
+        <View style={styles.featuredValueRow}>
+          <Text style={styles.featuredValue}>{offer.value}</Text>
+          <Text style={styles.featuredValueLabel}>{offer.valueLabel}</Text>
+        </View>
+        <Text variant="h2" color={Colors.textOnDark}>
+          {offer.title}
+        </Text>
+        <CodeBox code={offer.code} dark />
       </View>
     </View>
   );
 }
 
-const NOTCH = 18;
+const STUB = 96;
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: Colors.surface, borderRadius: Radius.lg, ...Shadow.card },
-  compact: { width: 270 },
-  top: {
-    padding: Space.lg,
-    gap: 6,
-    borderTopLeftRadius: Radius.lg,
-    borderTopRightRadius: Radius.lg,
-    minHeight: 104,
+  flex: { flex: 1 },
+  ticket: { backgroundColor: Colors.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card },
+  compact: { width: 290 },
+  ticketRow: { flexDirection: 'row' },
+  stub: { width: STUB, alignItems: 'center', justifyContent: 'center', paddingVertical: Space.lg, paddingHorizontal: 6 },
+  value: { fontFamily: Fonts.black, fontSize: 28, lineHeight: 32, color: Colors.ink, letterSpacing: -0.5 },
+  valueLabel: { fontFamily: Fonts.extrabold, fontSize: 11, letterSpacing: 1.4, color: Colors.ink, marginTop: 2 },
+  perforation: { position: 'absolute', right: -5, top: 0, bottom: 0, justifyContent: 'space-evenly' },
+  hole: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.surface },
+  details: { flex: 1, padding: Space.md, paddingLeft: Space.lg, gap: 3 },
+  categoryRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  exclusive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: Colors.ink,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: Radius.pill,
+    marginLeft: 'auto',
   },
-  categoryRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  tear: { flexDirection: 'row', alignItems: 'center', height: NOTCH },
-  notch: { width: NOTCH / 2, height: NOTCH, backgroundColor: Colors.background },
-  notchLeft: { borderTopRightRadius: NOTCH, borderBottomRightRadius: NOTCH },
-  notchRight: { borderTopLeftRadius: NOTCH, borderBottomLeftRadius: NOTCH },
-  tearLine: { flex: 1, paddingHorizontal: 6 },
-  bottom: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.lg, paddingTop: Space.sm },
-  codeInfo: { flex: 1, gap: 2 },
-  code: { fontFamily: Fonts.black, fontSize: 18, letterSpacing: 1.5, color: Colors.text },
+  exclusiveText: { fontFamily: Fonts.bold, fontSize: 10, color: Colors.textOnDark },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  bottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    padding: Space.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  codeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Space.sm,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    paddingLeft: Space.md,
+    paddingRight: 5,
+    height: 44,
+    backgroundColor: Colors.background,
+  },
+  codeBoxDark: { backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.35)' },
+  code: { fontFamily: Fonts.black, fontSize: 16, letterSpacing: 1.5, color: Colors.text },
   copy: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     backgroundColor: Colors.ink,
-    paddingHorizontal: 14,
-    height: 38,
-    borderRadius: Radius.pill,
+    paddingHorizontal: 12,
+    height: 34,
+    borderRadius: Radius.sm,
   },
   copied: { backgroundColor: Colors.teal },
+  detailsToggle: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  terms: { paddingHorizontal: Space.lg, paddingBottom: Space.lg, gap: 6 },
+  term: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
+  bullet: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.textMuted },
+  howTo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    backgroundColor: Colors.tealSoft,
+    borderRadius: Radius.sm,
+    padding: Space.sm,
+    marginTop: 4,
+  },
+  featured: {
+    height: 300,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    backgroundColor: Colors.ink,
+    justifyContent: 'space-between',
+  },
+  featuredTop: { flexDirection: 'row', justifyContent: 'space-between', padding: Space.lg },
+  featuredPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.pill },
+  featuredPillDark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(10,10,10,0.6)',
+  },
+  featuredBody: { padding: Space.xl, gap: Space.sm },
+  featuredValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
+  featuredValue: { fontFamily: Fonts.black, fontSize: 56, lineHeight: 60, color: Colors.teal, letterSpacing: -2 },
+  featuredValueLabel: { fontFamily: Fonts.extrabold, fontSize: 16, letterSpacing: 2, color: Colors.textOnDark, marginBottom: 10 },
 });
