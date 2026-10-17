@@ -1,4 +1,5 @@
 import type { FrameShape } from '@/components/frame-art';
+import type { IconName } from '@/components/icon';
 import { PHOTOS, VIDEOS } from '@/data/media';
 
 // Prototype catalogue for the Discover tab. Swap for ERPNext Item / Website Item data later.
@@ -16,6 +17,18 @@ export interface CollectionFrame {
   swatches: string[];
 }
 
+// A design/feature story banner: photo-led when `image` is set, otherwise a
+// bold stat banner. `learnTopic` links to the matching lens guide.
+export interface CollectionFeature {
+  icon: IconName;
+  title: string;
+  text: string;
+  image?: string;
+  stat?: string;
+  statLabel?: string;
+  learnTopic?: string;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -30,6 +43,8 @@ export interface Collection {
   heroImage: string;
   heroVideo?: string;
   gallery: string[];
+  features: CollectionFeature[];
+  specs: { label: string; value: string }[];
   frames: CollectionFrame[];
 }
 
@@ -46,6 +61,41 @@ export const collections: Collection[] = [
     heroColor: '#C9D1D3',
     heroImage: PHOTOS.womanMotorbikeDelhi,
     gallery: [PHOTOS.framesYellow, PHOTOS.couplePastel, PHOTOS.framesShowcase],
+    features: [
+      {
+        icon: 'construct-outline',
+        title: 'Precision-cut titanium',
+        text: 'Slim rims machined from pure titanium: stronger than steel, lighter than most plastics.',
+        image: PHOTOS.thinMetalFrame,
+      },
+      {
+        icon: 'scale-outline',
+        title: 'You’ll forget you’re wearing them',
+        text: 'No pressure marks on the nose or behind the ears, even after a 10-hour day.',
+        stat: '<10 g',
+        statLabel: 'Weight of a full pair',
+      },
+      {
+        icon: 'laptop-outline',
+        title: 'Made for screen days',
+        text: 'Pair them with BluPro blue filter lenses for comfortable laptop and phone time.',
+        image: PHOTOS.blueLightFrame,
+        learnTopic: 'blue-filter',
+      },
+      {
+        icon: 'leaf-outline',
+        title: 'Gentle on sensitive skin',
+        text: 'Hypoallergenic and rust-proof, so no green marks or itching in humid weather.',
+        stat: '0%',
+        statLabel: 'Nickel',
+      },
+    ],
+    specs: [
+      { label: 'Material', value: 'Pure titanium' },
+      { label: 'Weight', value: 'Under 10 g' },
+      { label: 'Hinges', value: 'Flexible' },
+      { label: 'Sizes', value: 'S · M · L' },
+    ],
     frames: [
       { id: 'TA101', name: 'Air TA101', shape: 'rectangle', color: '#4B5563', colorName: 'Gunmetal', material: 'Titanium', price: 4990, swatches: ['#4B5563', '#C9A86A', '#1F2937'] },
       { id: 'TA102', name: 'Air TA102', shape: 'round', color: '#C9A86A', colorName: 'Champagne gold', material: 'Titanium', price: 4990, swatches: ['#C9A86A', '#9CA3AF'] },
@@ -65,6 +115,40 @@ export const collections: Collection[] = [
     heroColor: '#7C3F1D',
     heroImage: PHOTOS.tortoiseFrameNight,
     gallery: [PHOTOS.orangeJacketGlasses, PHOTOS.framesFlatLay, PHOTOS.floralRoundGlasses],
+    features: [
+      {
+        icon: 'color-palette-outline',
+        title: 'Hand-polished acetate',
+        text: 'Layered acetate is cut, then tumbled and polished for days for a deep, glassy shine and rich tortoise patterns.',
+        image: PHOTOS.acetateCorner,
+      },
+      {
+        icon: 'time-outline',
+        title: 'Classic shapes, made for today',
+        text: 'Keyhole bridges and thick rims from the 60s and 70s, in sizes and fits for Indian faces.',
+        stat: '60s',
+        statLabel: 'Inspired silhouettes',
+      },
+      {
+        icon: 'eye-outline',
+        title: 'Bold rims that frame your face',
+        text: 'Statement frames that look as good in office meetings as on a night out.',
+        image: PHOTOS.blackFrameGirl,
+      },
+      {
+        icon: 'build-outline',
+        title: 'Adjusted to your face',
+        text: 'Metal-core temples can be warmed and shaped at the store for a fit that does not slip.',
+        stat: '5-barrel',
+        statLabel: 'Riveted hinges',
+      },
+    ],
+    specs: [
+      { label: 'Material', value: 'Italian acetate' },
+      { label: 'Finish', value: 'Hand-polished' },
+      { label: 'Hinges', value: '5-barrel' },
+      { label: 'Sizes', value: 'M · L' },
+    ],
     frames: [
       { id: 'RR201', name: 'Revival RR201', shape: 'round', color: '#7C3F1D', colorName: 'Havana tortoise', material: 'Acetate', price: 3290, swatches: ['#7C3F1D', '#111827', '#B45309'] },
       { id: 'RR202', name: 'Revival RR202', shape: 'wayfarer', color: '#111827', colorName: 'Gloss black', material: 'Acetate', price: 2990, swatches: ['#111827', '#7C3F1D'] },
@@ -85,6 +169,41 @@ export const collections: Collection[] = [
     heroTint: '#14532D',
     heroImage: PHOTOS.manSunglassesStreet,
     gallery: [PHOTOS.sunglassesPool, PHOTOS.manSunglassesStreet],
+    features: [
+      {
+        icon: 'water-outline',
+        title: 'Polarised against glare',
+        text: 'Cuts the harsh glare bouncing off water, wet roads and car bonnets, so colours stay true.',
+        image: PHOTOS.sunglassesSea,
+        learnTopic: 'polarized',
+      },
+      {
+        icon: 'shield-checkmark-outline',
+        title: 'Full UV protection',
+        text: 'Every pair blocks 100% of UVA and UVB rays, protecting your eyes on the brightest days.',
+        stat: 'UV400',
+        statLabel: '100% UVA & UVB blocked',
+      },
+      {
+        icon: 'sunny-outline',
+        title: 'Built for Indian summers',
+        text: 'Scratch-resistant lenses and sweat-proof nose pads for the beach, bike rides and the 2 pm sun.',
+        image: PHOTOS.sunglassesSandSun,
+      },
+      {
+        icon: 'glasses-outline',
+        title: 'Available with your power',
+        text: 'Every Sun Club frame can be made with your prescription, including progressives.',
+        stat: 'Rx',
+        statLabel: 'Prescription ready',
+      },
+    ],
+    specs: [
+      { label: 'Lens', value: 'Polarised' },
+      { label: 'UV', value: 'UV400' },
+      { label: 'Frames', value: 'Metal · Acetate' },
+      { label: 'Power', value: 'Available' },
+    ],
     frames: [
       { id: 'SC301', name: 'Sun SC301', shape: 'aviator', color: '#C9A86A', tint: '#14532D', colorName: 'Gold · G15 green', material: 'Metal', price: 2490, swatches: ['#C9A86A', '#4B5563'] },
       { id: 'SC302', name: 'Sun SC302', shape: 'wayfarer', color: '#111827', tint: '#1F2937', colorName: 'Black · Grey', material: 'Acetate', price: 1990, swatches: ['#111827', '#7C3F1D'] },
@@ -104,6 +223,41 @@ export const collections: Collection[] = [
     heroColor: '#2BB8F0',
     heroImage: PHOTOS.girlBlueGlasses,
     gallery: [PHOTOS.boyGlasses, PHOTOS.girlBlueGlasses],
+    features: [
+      {
+        icon: 'football-outline',
+        title: 'Made for playgrounds',
+        text: 'TR90 frames bend instead of snapping, so slides, swings and sports are no problem.',
+        image: PHOTOS.toddlerPlayground,
+      },
+      {
+        icon: 'git-merge-outline',
+        title: 'Bends back into shape',
+        text: 'Ultra-flexible temples twist and spring back, and stay put during play.',
+        stat: 'TR90',
+        statLabel: 'Flexible frame material',
+      },
+      {
+        icon: 'happy-outline',
+        title: 'Comfy from school to bedtime',
+        text: 'Soft silicone nose pads and featherweight frames kids don’t want to take off.',
+        image: PHOTOS.boyUkulele,
+      },
+      {
+        icon: 'trending-down-outline',
+        title: 'Pair with myopia control lenses',
+        text: 'For kids whose minus power keeps rising, ask about lenses that help slow the change.',
+        stat: 'Kids',
+        statLabel: 'Myopia care',
+        learnTopic: 'myopia-control',
+      },
+    ],
+    specs: [
+      { label: 'Material', value: 'TR90 flex' },
+      { label: 'Ages', value: '3 – 12' },
+      { label: 'Nose pads', value: 'Silicone' },
+      { label: 'In the box', value: 'Sports strap' },
+    ],
     frames: [
       { id: 'LE401', name: 'Explorer LE401', shape: 'oval', color: '#2BB8F0', colorName: 'Sky blue', material: 'TR90 flex', price: 1490, swatches: ['#2BB8F0', '#F2765A', '#16A34A'] },
       { id: 'LE402', name: 'Explorer LE402', shape: 'round', color: '#F2765A', colorName: 'Coral', material: 'TR90 flex', price: 1490, swatches: ['#F2765A', '#6D7BE0'] },

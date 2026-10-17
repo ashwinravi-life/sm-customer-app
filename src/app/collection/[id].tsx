@@ -9,12 +9,13 @@ import { Badge } from '@/components/bits';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { FrameArt } from '@/components/frame-art';
+import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
-import { Colors, Radius, Space } from '@/constants/theme';
-import { collections, type CollectionFrame } from '@/data/discover';
+import { Colors, Fonts, Radius, Space } from '@/constants/theme';
+import { collections, type Collection, type CollectionFeature, type CollectionFrame } from '@/data/discover';
 import { formatRupees } from '@/lib/format';
-import { select } from '@/lib/haptics';
+import { select, tap } from '@/lib/haptics';
 
 function FrameTile({ frame }: { frame: CollectionFrame }) {
   const [color, setColor] = useState(frame.swatches[0] ?? frame.color);
@@ -51,6 +52,76 @@ function FrameTile({ frame }: { frame: CollectionFrame }) {
   );
 }
 
+function LearnMore({ topic, color }: { topic: string; color: string }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={() => {
+        tap();
+        router.push({ pathname: '/learn/[topic]', params: { topic } });
+      }}
+      style={styles.learn}
+    >
+      <Text variant="captionStrong" color={color}>
+        See how it works
+      </Text>
+      <Icon name="arrow-forward" size={16} color={color} />
+    </Pressable>
+  );
+}
+
+function FeatureBanner({ feature, collection }: { feature: CollectionFeature; collection: Collection }) {
+  if (feature.image) {
+    return (
+      <View style={styles.featurePhoto}>
+        <Image source={{ uri: feature.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
+        <LinearGradient
+          colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.82)']}
+          start={{ x: 0, y: 0.25 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.featureIcon}>
+          <Icon name={feature.icon} size={22} color={Colors.ink} />
+        </View>
+        <View style={styles.featureText}>
+          <Text variant="h2" color={Colors.textOnDark}>
+            {feature.title}
+          </Text>
+          <Text variant="body" color={Colors.textOnDarkMuted}>
+            {feature.text}
+          </Text>
+          {feature.learnTopic ? <LearnMore topic={feature.learnTopic} color={collection.accent} /> : null}
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <LinearGradient colors={collection.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.featureStat}>
+      {/* Oversized frame outline as a watermark */}
+      <View style={styles.watermark} pointerEvents="none">
+        <FrameArt shape={collection.heroShape} color="rgba(255,255,255,0.12)" width={260} thickness={4} />
+      </View>
+      <Icon name={feature.icon} size={26} color={collection.accent} />
+      <Text style={styles.stat} color={Colors.textOnDark}>
+        {feature.stat}
+      </Text>
+      <Text variant="overline" color={collection.accent}>
+        {feature.statLabel}
+      </Text>
+      <Text variant="h2" color={Colors.textOnDark} style={styles.statTitle}>
+        {feature.title}
+      </Text>
+      <Text variant="body" color={Colors.textOnDarkMuted}>
+        {feature.text}
+      </Text>
+      {feature.learnTopic ? <LearnMore topic={feature.learnTopic} color={collection.accent} /> : null}
+    </LinearGradient>
+  );
+}
+
 export default function CollectionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const collection = collections.find((c) => c.id === id);
@@ -84,6 +155,23 @@ export default function CollectionScreen() {
 
       <Text variant="body">{collection.story}</Text>
 
+      <View style={styles.specs}>
+        {collection.specs.map((s) => (
+          <View key={s.label} style={styles.spec}>
+            <Text variant="overline">{s.label}</Text>
+            <Text variant="captionStrong" align="center">
+              {s.value}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <Text variant="h2">Design & features</Text>
+      {collection.features.map((feature) => (
+        <FeatureBanner key={feature.title} feature={feature} collection={collection} />
+      ))}
+
+      <Text variant="h2">Lookbook</Text>
       {collection.gallery.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gallery} style={styles.bleed}>
           {collection.gallery.map((uri) => (
@@ -114,6 +202,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   heroBadge: { padding: Space.lg },
+  specs: { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: Radius.lg, paddingVertical: Space.md },
+  spec: { flex: 1, alignItems: 'center', gap: 4, paddingHorizontal: 4 },
+  featurePhoto: {
+    height: 360,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    backgroundColor: Colors.ink,
+    justifyContent: 'space-between',
+  },
+  featureIcon: {
+    margin: Space.lg,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureText: { padding: Space.xl, gap: Space.xs },
+  featureStat: { borderRadius: Radius.xl, padding: Space.xxl, gap: 4, overflow: 'hidden' },
+  watermark: { position: 'absolute', right: -60, bottom: -10 },
+  stat: { fontFamily: Fonts.black, fontSize: 64, lineHeight: 72, letterSpacing: -2, marginTop: Space.sm },
+  statTitle: { marginTop: Space.md },
+  learn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: Space.sm, alignSelf: 'flex-start' },
   heroText: { padding: Space.xl },
   bleed: { marginHorizontal: -Space.xl, flexGrow: 0 },
   gallery: { gap: Space.md, paddingHorizontal: Space.xl },
