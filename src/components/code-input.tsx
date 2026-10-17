@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
+import { Text } from '@/components/text';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 
 export const CODE_LENGTH = 6;
@@ -9,21 +10,33 @@ interface CodeInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  hasError?: boolean;
 }
 
 // One real (invisible) input laid over six display boxes, so typing, paste
 // and SMS code autofill all work like a normal field.
-export function CodeInput({ value, onChange, disabled }: CodeInputProps) {
+export function CodeInput({ value, onChange, disabled, hasError }: CodeInputProps) {
   const [focused, setFocused] = useState(false);
   const activeIndex = focused ? Math.min(value.length, CODE_LENGTH - 1) : -1;
 
   return (
     <View style={styles.row}>
-      {Array.from({ length: CODE_LENGTH }, (_, index) => (
-        <View key={index} style={[styles.box, index === activeIndex && styles.boxActive]}>
-          <Text style={styles.digit}>{value[index] ?? ''}</Text>
-        </View>
-      ))}
+      {Array.from({ length: CODE_LENGTH }, (_, index) => {
+        const filled = index < value.length;
+        return (
+          <View
+            key={index}
+            style={[
+              styles.box,
+              filled && styles.boxFilled,
+              index === activeIndex && styles.boxActive,
+              hasError && styles.boxError,
+            ]}
+          >
+            <Text style={styles.digit}>{value[index] ?? ''}</Text>
+          </View>
+        );
+      })}
       <TextInput
         value={value}
         onChangeText={(text) => onChange(text.replace(/\D/g, '').slice(0, CODE_LENGTH))}
@@ -44,18 +57,22 @@ export function CodeInput({ value, onChange, disabled }: CodeInputProps) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  row: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
   box: {
-    width: 48,
-    height: 56,
+    flex: 1,
+    maxWidth: 54,
+    aspectRatio: 0.85,
     borderWidth: 2,
     borderColor: Colors.border,
-    borderRadius: Radius.field,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  boxActive: { borderColor: Colors.teal },
-  digit: { fontFamily: Fonts.bold, fontSize: 22, color: Colors.foreground },
+  boxFilled: { borderColor: Colors.ink },
+  boxActive: { borderColor: Colors.teal, backgroundColor: Colors.tealSoft },
+  boxError: { borderColor: Colors.danger },
+  digit: { fontFamily: Fonts.extrabold, fontSize: 24, color: Colors.text },
   hiddenInput: {
     position: 'absolute',
     top: 0,

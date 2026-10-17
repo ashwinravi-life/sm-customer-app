@@ -2,22 +2,25 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { AppButton } from '@/components/app-button';
-import { AppText } from '@/components/app-text';
+import { AuthShell } from '@/components/auth-shell';
+import { Button } from '@/components/button';
 import { CODE_LENGTH, CodeInput } from '@/components/code-input';
-import { Screen } from '@/components/screen';
-import { Colors, Fonts, Spacing } from '@/constants/theme';
+import { Text } from '@/components/text';
+import { Colors, Radius, Space } from '@/constants/theme';
+import { useAppState } from '@/lib/app-state';
+import { error as errorHaptic, success } from '@/lib/haptics';
 
 const RESEND_COOLDOWN_SECONDS = 30;
-// Prototype only: 123456 is accepted; any other 6 digits mock a wrong code.
+// Prototype only: 123456 is accepted; any other code mocks a wrong one.
 const MOCK_CODE = '123456';
 const VERIFY_DELAY_MS = 700;
 
 export default function VerifyScreen() {
   const { mobile } = useLocalSearchParams<{ mobile: string }>();
+  const { signIn } = useAppState();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
   useEffect(() => {
@@ -26,81 +29,94 @@ export default function VerifyScreen() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  const handleCodeChange = (value: string) => {
-    setCode(value);
-    if (error) setError('');
-  };
-
-  const handleResend = () => {
-    setCode('');
-    setError('');
-    setCooldown(RESEND_COOLDOWN_SECONDS);
-  };
-
-  const handleVerify = () => {
-    setIsVerifying(true);
+  const verify = (value: string) => {
+    setVerifying(true);
     setTimeout(() => {
-      setIsVerifying(false);
-      if (code === MOCK_CODE) {
-        router.replace({ pathname: '/home', params: { mobile } });
+      setVerifying(false);
+      if (value === MOCK_CODE) {
+        success();
+        signIn(mobile);
       } else {
-        setError('Incorrect verification code. Please try again.');
+        errorHaptic();
+        setError('That code is incorrect. Please try again.');
         setCode('');
       }
     }, VERIFY_DELAY_MS);
   };
 
+  // Verify as soon as the sixth digit lands, like most banking apps.
+  const handleChange = (value: string) => {
+    setCode(value);
+    if (error) setError('');
+    if (value.length === CODE_LENGTH && !verifying) verify(value);
+  };
+
   return (
-    <Screen>
+    <AuthShell compact>
       <View style={styles.heading}>
-        <AppText variant="title">Verify Mobile Number</AppText>
-        <AppText variant="muted">Enter the 6-digit code sent to</AppText>
+        <Text variant="h1">Enter code</Text>
+        <Text variant="caption">Sent by SMS to</Text>
         <View style={styles.numberRow}>
-          <AppText style={styles.number}>+91 {mobile}</AppText>
-          <Pressable
-            onPress={() => router.back()}
-            disabled={isVerifying}
-            accessibilityRole="button"
-            hitSlop={8}
-          >
-            <AppText style={styles.change}>Change</AppText>
+          <Text variant="h3">+91 {mobile}</Text>
+          <Pressable accessibilityRole="button" hitSlop={10} onPress={() => router.back()} disabled={verifying}>
+            <Text variant="captionStrong" color={Colors.tealDeep}>
+              Change
+            </Text>
           </Pressable>
         </View>
       </View>
 
-      <View style={styles.codeSection}>
-        <CodeInput value={code} onChange={handleCodeChange} disabled={isVerifying} />
-        {error ? <AppText variant="error">{error}</AppText> : null}
-        <AppText variant="muted" style={styles.hint}>
-          Prototype: use code {MOCK_CODE}
-        </AppText>
+      <View style={styles.codeBlock}>
+        <CodeInput value={code} onChange={handleChange} disabled={verifying} hasError={!!error} />
+        {error ? (
+          <Text variant="caption" color={Colors.danger} align="center">
+            {error}
+          </Text>
+        ) : null}
       </View>
 
-      <View style={styles.actions}>
-        <AppButton
-          variant="outline"
-          title={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
-          onPress={handleResend}
-          disabled={cooldown > 0 || isVerifying}
-        />
-        <AppButton
-          title="Verify"
-          loadingTitle="Verifying..."
-          onPress={handleVerify}
-          disabled={code.length !== CODE_LENGTH}
-          loading={isVerifying}
-        />
+      <Button
+        title="Verify"
+        loadingTitle="Verifying…"
+        loading={verifying}
+        disabled={code.length !== CODE_LENGTH}
+        onPress={() => verify(code)}
+      />
+
+      <View style={styles.resendRow}>
+        <Text variant="caption">Didn’t get it?</Text>
+        {cooldown > 0 ? (
+          <Text variant="captionStrong">Resend in 0:{String(cooldown).padStart(2, '0')}</Text>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            hitSlop={10}
+            onPress={() => {
+              setCode('');
+              setError('');
+              setCooldown(RESEND_COOLDOWN_SECONDS);
+            }}
+          >
+            <Text variant="captionStrong" color={Colors.tealDeep}>
+              Resend code
+            </Text>
+          </Pressable>
+        )}
       </View>
-    </Screen>
+
+      <View style={styles.demoHint}>
+        <Text variant="caption" align="center">
+          Prototype: use code <Text variant="captionStrong">{MOCK_CODE}</Text>
+        </Text>
+      </View>
+    </AuthShell>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: { gap: Spacing.xs },
-  numberRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.xs },
-  number: { fontFamily: Fonts.bold, fontSize: 18, letterSpacing: 0.5 },
-  change: { fontFamily: Fonts.bold, fontSize: 15, color: Colors.teal, textDecorationLine: 'underline' },
-  codeSection: { gap: Spacing.md, paddingVertical: Spacing.sm },
-  hint: { textAlign: 'center', fontSize: 12 },
-  actions: { flexDirection: 'row', gap: Spacing.md },
+  heading: { gap: 2 },
+  numberRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  codeBlock: { gap: Space.md },
+  resendRow: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  demoHint: { backgroundColor: Colors.background, borderRadius: Radius.sm, paddingVertical: 8 },
 });

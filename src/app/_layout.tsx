@@ -3,6 +3,7 @@ import {
   NunitoSans_600SemiBold,
   NunitoSans_700Bold,
   NunitoSans_800ExtraBold,
+  NunitoSans_900Black,
   useFonts,
 } from '@expo-google-fonts/nunito-sans';
 import { Stack } from 'expo-router';
@@ -11,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { Colors } from '@/constants/theme';
+import { AppStateProvider, useAppState } from '@/lib/app-state';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,6 +22,7 @@ export default function RootLayout() {
     NunitoSans_600SemiBold,
     NunitoSans_700Bold,
     NunitoSans_800ExtraBold,
+    NunitoSans_900Black,
   });
 
   useEffect(() => {
@@ -29,14 +32,41 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
+    <AppStateProvider>
+      <RootStack />
+    </AppStateProvider>
+  );
+}
+
+function RootStack() {
+  const { customer } = useAppState();
+  const signedIn = customer !== null;
+
+  return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={signedIn ? 'dark' : 'light'} />
       <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: Colors.background },
+          animation: 'slide_from_right',
         }}
-      />
+      >
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="sign-in" />
+          <Stack.Screen name="verify" />
+        </Stack.Protected>
+
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="order/[id]" />
+          <Stack.Screen name="prescriptions" />
+          <Stack.Screen name="offers" />
+          <Stack.Screen name="stores" />
+          <Stack.Screen name="refer" />
+          <Stack.Screen name="redeem" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+        </Stack.Protected>
+      </Stack>
     </>
   );
 }
