@@ -1,4 +1,5 @@
 import type { FrameShape } from '@/components/frame-art';
+import { PHOTOS, VIDEOS } from '@/data/media';
 
 // Prototype catalogue for the Discover tab. Swap for ERPNext Item / Website Item data later.
 
@@ -26,6 +27,9 @@ export interface Collection {
   heroShape: FrameShape;
   heroColor: string;
   heroTint?: string;
+  heroImage: string;
+  heroVideo?: string;
+  gallery: string[];
   frames: CollectionFrame[];
 }
 
@@ -40,6 +44,8 @@ export const collections: Collection[] = [
     accent: '#37D7BD',
     heroShape: 'rectangle',
     heroColor: '#C9D1D3',
+    heroImage: PHOTOS.womanMotorbikeDelhi,
+    gallery: [PHOTOS.framesYellow, PHOTOS.couplePastel, PHOTOS.framesShowcase],
     frames: [
       { id: 'TA101', name: 'Air TA101', shape: 'rectangle', color: '#4B5563', colorName: 'Gunmetal', material: 'Titanium', price: 4990, swatches: ['#4B5563', '#C9A86A', '#1F2937'] },
       { id: 'TA102', name: 'Air TA102', shape: 'round', color: '#C9A86A', colorName: 'Champagne gold', material: 'Titanium', price: 4990, swatches: ['#C9A86A', '#9CA3AF'] },
@@ -57,6 +63,8 @@ export const collections: Collection[] = [
     accent: '#F5B82E',
     heroShape: 'round',
     heroColor: '#7C3F1D',
+    heroImage: PHOTOS.tortoiseFrameNight,
+    gallery: [PHOTOS.orangeJacketGlasses, PHOTOS.framesFlatLay, PHOTOS.floralRoundGlasses],
     frames: [
       { id: 'RR201', name: 'Revival RR201', shape: 'round', color: '#7C3F1D', colorName: 'Havana tortoise', material: 'Acetate', price: 3290, swatches: ['#7C3F1D', '#111827', '#B45309'] },
       { id: 'RR202', name: 'Revival RR202', shape: 'wayfarer', color: '#111827', colorName: 'Gloss black', material: 'Acetate', price: 2990, swatches: ['#111827', '#7C3F1D'] },
@@ -75,6 +83,8 @@ export const collections: Collection[] = [
     heroShape: 'aviator',
     heroColor: '#C9A86A',
     heroTint: '#14532D',
+    heroImage: PHOTOS.manSunglassesStreet,
+    gallery: [PHOTOS.sunglassesPool, PHOTOS.manSunglassesStreet],
     frames: [
       { id: 'SC301', name: 'Sun SC301', shape: 'aviator', color: '#C9A86A', tint: '#14532D', colorName: 'Gold · G15 green', material: 'Metal', price: 2490, swatches: ['#C9A86A', '#4B5563'] },
       { id: 'SC302', name: 'Sun SC302', shape: 'wayfarer', color: '#111827', tint: '#1F2937', colorName: 'Black · Grey', material: 'Acetate', price: 1990, swatches: ['#111827', '#7C3F1D'] },
@@ -92,6 +102,8 @@ export const collections: Collection[] = [
     accent: '#37D7BD',
     heroShape: 'oval',
     heroColor: '#2BB8F0',
+    heroImage: PHOTOS.girlBlueGlasses,
+    gallery: [PHOTOS.boyGlasses, PHOTOS.girlBlueGlasses],
     frames: [
       { id: 'LE401', name: 'Explorer LE401', shape: 'oval', color: '#2BB8F0', colorName: 'Sky blue', material: 'TR90 flex', price: 1490, swatches: ['#2BB8F0', '#F2765A', '#16A34A'] },
       { id: 'LE402', name: 'Explorer LE402', shape: 'round', color: '#F2765A', colorName: 'Coral', material: 'TR90 flex', price: 1490, swatches: ['#F2765A', '#6D7BE0'] },
@@ -100,15 +112,23 @@ export const collections: Collection[] = [
   },
 ];
 
-// Promo videos play from files bundled in assets/videos (or a hosted URL).
-// Empty until real Specsmakers promo videos are supplied; the Watch row hides itself.
+// Promo videos: hosted URLs (or bundled files). Stock placeholders for now.
 export interface PromoVideo {
   id: string;
   title: string;
   subtitle: string;
-  duration: string;
-  gradient: readonly [string, string];
   source: number | string;
 }
 
-export const promoVideos: PromoVideo[] = [];
+export const promoVideos: PromoVideo[] = [
+  { id: 'lens-craft', title: 'Crafted to your power', subtitle: 'Lenses made for you', source: VIDEOS.prescriptionGlassesCloseUp },
+  { id: 'sun-club', title: 'Sun Club 2026', subtitle: 'Polarised. UV400.', source: VIDEOS.happySunglasses },
+  { id: 'frames-up-close', title: 'Frames, up close', subtitle: 'Details that matter', source: VIDEOS.eyeglassesCloseUp },
+];
+
+export const heroVideo = {
+  source: VIDEOS.womanPutsOnGlasses,
+  eyebrow: 'The 2026 edit',
+  title: 'New frames\nhave landed.',
+  subtitle: 'Four collections, from feather-light titanium to polarised sun.',
+};

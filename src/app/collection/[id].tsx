@@ -1,8 +1,10 @@
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { AutoVideo } from '@/components/auto-video';
 import { Badge } from '@/components/bits';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -63,18 +65,34 @@ export default function CollectionScreen() {
 
   return (
     <Screen title={collection.name}>
-      <LinearGradient colors={collection.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <Badge label={collection.badge} color={Colors.ink} background={collection.accent} />
-        <View style={styles.heroArt}>
-          <FrameArt shape={collection.heroShape} color={collection.heroColor} tint={collection.heroTint} width={240} thickness={6} />
+      <View style={styles.hero}>
+        {collection.heroVideo ? (
+          <AutoVideo source={collection.heroVideo} />
+        ) : (
+          <Image source={{ uri: collection.heroImage }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
+        )}
+        <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']} start={{ x: 0, y: 0.3 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={styles.heroBadge}>
+          <Badge label={collection.badge} color={Colors.ink} background={collection.accent} />
         </View>
-        <Text variant="h1" color={Colors.textOnDark}>
-          {collection.tagline}
-        </Text>
-        <Text variant="body" color={Colors.textOnDarkMuted}>
-          {collection.story}
-        </Text>
-      </LinearGradient>
+        <View style={styles.heroText}>
+          <Text variant="h1" color={Colors.textOnDark}>
+            {collection.tagline}
+          </Text>
+        </View>
+      </View>
+
+      <Text variant="body">{collection.story}</Text>
+
+      {collection.gallery.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gallery} style={styles.bleed}>
+          {collection.gallery.map((uri) => (
+            <Image key={uri} source={{ uri }} style={styles.galleryImage} contentFit="cover" transition={250} />
+          ))}
+        </ScrollView>
+      ) : null}
+
+      <Text variant="h2">The frames</Text>
 
       <View style={styles.grid}>
         {collection.frames.map((frame) => (
@@ -88,8 +106,18 @@ export default function CollectionScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: Radius.xl, padding: Space.xxl, gap: Space.md },
-  heroArt: { alignItems: 'center', paddingVertical: Space.md },
+  hero: {
+    height: 420,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    backgroundColor: Colors.ink,
+    justifyContent: 'space-between',
+  },
+  heroBadge: { padding: Space.lg },
+  heroText: { padding: Space.xl },
+  bleed: { marginHorizontal: -Space.xl, flexGrow: 0 },
+  gallery: { gap: Space.md, paddingHorizontal: Space.xl },
+  galleryImage: { width: 200, height: 250, borderRadius: Radius.lg, backgroundColor: Colors.border },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.md },
   tile: { width: '47%', flexGrow: 1, gap: 2, padding: Space.md },
   tileArt: {
