@@ -119,13 +119,6 @@ function TopicGrid({ topics }: { topics: LearnTopic[] }) {
   );
 }
 
-const LOOKS = [
-  { uri: PHOTOS.couplePastel, title: 'Pastel pairs', collection: 'titanium-air', tall: false },
-  { uri: PHOTOS.orangeJacketGlasses, title: 'Night-out round', collection: 'retro-revival', tall: true },
-  { uri: PHOTOS.framesFlatLay, title: 'Clear & crystal', collection: 'titanium-air', tall: true },
-  { uri: PHOTOS.sunglassesPool, title: 'Poolside shades', collection: 'sun-club', tall: false },
-];
-
 export default function DiscoverScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -234,33 +227,6 @@ export default function DiscoverScreen() {
               </ScrollView>
             </View>
           ) : null}
-
-          {/* Shop the look */}
-          <View style={styles.section}>
-            <SectionHeader title="Shop the look" />
-            <View style={styles.masonry}>
-              {[0, 1].map((col) => (
-                <View key={col} style={styles.masonryCol}>
-                  {LOOKS.filter((_, i) => i % 2 === col).map((look) => (
-                    <Tappable
-                      key={look.title}
-                      onPress={() => router.push({ pathname: '/collection/[id]', params: { id: look.collection } })}
-                      style={[styles.look, { height: look.tall ? 260 : 190 }]}
-                      label={look.title}
-                    >
-                      <Photo uri={look.uri} />
-                      <LinearGradient colors={SHADE} start={{ x: 0, y: 0.55 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
-                      <View style={styles.lookText}>
-                        <Text variant="captionStrong" color={Colors.textOnDark}>
-                          {look.title}
-                        </Text>
-                      </View>
-                    </Tappable>
-                  ))}
-                </View>
-              ))}
-            </View>
-          </View>
 
           {/* Progressive lens banner */}
           <Tappable
@@ -418,10 +384,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  masonry: { flexDirection: 'row', gap: Space.md },
-  masonryCol: { flex: 1, gap: Space.md },
-  look: { borderRadius: Radius.lg, overflow: 'hidden', backgroundColor: Colors.border, justifyContent: 'flex-end' },
-  lookText: { padding: Space.md },
   splitBanner: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
