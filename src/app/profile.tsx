@@ -52,8 +52,7 @@ export default function ProfileScreen() {
   const { signOut, tier } = useAppState();
 
   return (
-    <Screen>
-      <Text variant="h1">Profile</Text>
+    <Screen title="Profile">
 
       <Card style={styles.profile}>
         <Avatar name={customer.name} color={Colors.ink} size={60} />

@@ -43,11 +43,21 @@ export default function HomeScreen() {
     <Screen>
       {/* Header */}
       <View style={styles.header}>
-        <Avatar name={customer.name} color={Colors.ink} size={46} />
-        <View style={styles.flex}>
-          <Text variant="caption">{greeting()},</Text>
-          <Text variant="h2">{customer.firstName}</Text>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+          onPress={() => {
+            tap();
+            router.push('/profile');
+          }}
+          style={({ pressed }) => [styles.headerProfile, pressed && { opacity: 0.7 }]}
+        >
+          <Avatar name={customer.name} color={Colors.ink} size={46} />
+          <View style={styles.flex}>
+            <Text variant="caption">{greeting()},</Text>
+            <Text variant="h2">{customer.firstName}</Text>
+          </View>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Show my QR"
@@ -231,6 +241,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  headerProfile: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Space.md },
   headerQr: {
     width: 46,
     height: 46,

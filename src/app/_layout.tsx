@@ -64,6 +64,12 @@ function RootStack() {
           <Stack.Screen name="offers" />
           <Stack.Screen name="stores" />
           <Stack.Screen name="refer" />
+          <Stack.Screen name="profile" />
+          <Stack.Screen name="collection/[id]" />
+          <Stack.Screen name="video/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+          <Stack.Screen name="learn/[topic]" />
+          <Stack.Screen name="face-shapes" />
+          <Stack.Screen name="eye-test" options={{ gestureEnabled: false }} />
           <Stack.Screen name="redeem" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         </Stack.Protected>
       </Stack>

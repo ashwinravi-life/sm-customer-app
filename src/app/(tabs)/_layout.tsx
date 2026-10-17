@@ -33,8 +33,8 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon('home-outline', 'home') }} />
       <Tabs.Screen
-        name="orders"
-        options={{ title: 'Orders', tabBarIcon: tabIcon('bag-handle-outline', 'bag-handle') }}
+        name="discover"
+        options={{ title: 'Discover', tabBarIcon: tabIcon('compass-outline', 'compass') }}
       />
       <Tabs.Screen name="my-qr" options={{ title: 'My QR', tabBarIcon: QrTabIcon }} />
       <Tabs.Screen
@@ -42,8 +42,8 @@ export default function TabsLayout() {
         options={{ title: 'Rewards', tabBarIcon: tabIcon('sparkles-outline', 'sparkles') }}
       />
       <Tabs.Screen
-        name="profile"
-        options={{ title: 'Profile', tabBarIcon: tabIcon('person-circle-outline', 'person-circle') }}
+        name="orders"
+        options={{ title: 'Orders', tabBarIcon: tabIcon('bag-handle-outline', 'bag-handle') }}
       />
     </Tabs>
   );
