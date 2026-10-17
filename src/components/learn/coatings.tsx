@@ -85,8 +85,9 @@ function Eye() {
   );
 }
 
-function Visual({ kind, on }: { kind: CoatingKind; on: boolean }) {
-  const clip = `clip-${kind}`;
+// `uid` keeps SVG ids unique when two copies render in one picture (before/after split).
+function Visual({ kind, on, uid = '' }: { kind: CoatingKind; on: boolean; uid?: string }) {
+  const clip = `clip-${kind}${uid}`;
   switch (kind) {
     case 'anti-scratch':
       return (
@@ -186,12 +187,12 @@ function Visual({ kind, on }: { kind: CoatingKind; on: boolean }) {
       return (
         <LensFrame id={clip}>
           <Defs>
-            <LinearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <LinearGradient id={`sky${uid}`} x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor={on ? '#3B82F6' : '#BFDBFE'} />
               <Stop offset="1" stopColor={on ? '#93C5FD' : '#E0F2FE'} />
             </LinearGradient>
           </Defs>
-          <Rect x={0} y={0} width={VB_W} height={95} fill="url(#sky)" />
+          <Rect x={0} y={0} width={VB_W} height={95} fill={`url(#sky${uid})`} />
           <Rect x={0} y={95} width={VB_W} height={95} fill={on ? '#0E7490' : '#67E8F9'} />
           <Path d="M0 95 L90 70 L150 95 Z" fill={on ? '#166534' : '#86EFAC'} />
           {!on ? (
@@ -259,3 +260,26 @@ export function CoatingVisual({ kind }: { kind: CoatingKind }) {
 const styles = StyleSheet.create({
   stack: { gap: Space.lg },
 });
+
+// Before/after thumbnail: left half uncoated, right half coated.
+export function CoatingSplit({ kind, height = 120 }: { kind: CoatingKind; height?: number }) {
+  return (
+    <Svg width="100%" height={height} viewBox={`0 0 ${VB_W} ${VB_H}`}>
+      <Defs>
+        <ClipPath id={`left-${kind}`}>
+          <Rect x={0} y={0} width={VB_W / 2} height={VB_H} />
+        </ClipPath>
+        <ClipPath id={`right-${kind}`}>
+          <Rect x={VB_W / 2} y={0} width={VB_W / 2} height={VB_H} />
+        </ClipPath>
+      </Defs>
+      <G clipPath={`url(#left-${kind})`}>
+        <Visual kind={kind} on={false} uid="-before" />
+      </G>
+      <G clipPath={`url(#right-${kind})`}>
+        <Visual kind={kind} on uid="-after" />
+      </G>
+      <Rect x={VB_W / 2 - 1.5} y={6} width={3} height={VB_H - 12} fill={Colors.surface} />
+    </Svg>
+  );
+}

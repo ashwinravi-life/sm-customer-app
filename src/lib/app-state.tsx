@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
 import { coinEntries as initialEntries, customer as mockCustomer, TIERS } from '@/data/mock';
-import type { CoinEntry, Customer, Tier } from '@/data/types';
+import type { Appointment, CoinEntry, Customer, Tier } from '@/data/types';
 
 export interface Redemption {
   code: string;
@@ -21,6 +21,9 @@ interface AppState {
   activeRedemption: Redemption | null;
   redeemCoins: (coins: number) => Redemption;
   clearRedemption: () => void;
+  appointments: Appointment[];
+  bookAppointment: (appointment: Omit<Appointment, 'id'>) => Appointment;
+  cancelAppointment: (id: string) => void;
 }
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -42,6 +45,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [entries, setEntries] = useState<CoinEntry[]>(initialEntries);
   const [activeRedemption, setActiveRedemption] = useState<Redemption | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const value = useMemo<AppState>(() => {
     const coinBalance = entries.reduce((sum, e) => sum + e.points, 0);
@@ -57,6 +61,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       signOut: () => {
         setCustomer(null);
         setActiveRedemption(null);
+        setAppointments([]);
       },
       coinBalance,
       lifetimeCoins,
@@ -99,8 +104,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         }
         setActiveRedemption(null);
       },
+      appointments,
+      bookAppointment: (input) => {
+        const appointment = { ...input, id: `APT-${Date.now().toString(36).toUpperCase()}` };
+        setAppointments((prev) =>
+          [...prev, appointment].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)),
+        );
+        return appointment;
+      },
+      cancelAppointment: (id) => setAppointments((prev) => prev.filter((a) => a.id !== id)),
     };
-  }, [customer, entries, activeRedemption]);
+  }, [customer, entries, activeRedemption, appointments]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

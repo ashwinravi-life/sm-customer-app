@@ -7,7 +7,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Coin } from '@/components/coin';
 import { Icon, type IconName } from '@/components/icon';
-import { OfferCard } from '@/components/offer-card';
+import { FeaturedOffer } from '@/components/offer-card';
 import { OrderProgressBar } from '@/components/order-progress';
 import { Screen } from '@/components/screen';
 import { StoreCard } from '@/components/store-card';
@@ -17,12 +17,13 @@ import { EARN_RULES, family, offers, orders, stores } from '@/data/mock';
 import { useAppState, useCustomer } from '@/lib/app-state';
 import { daysUntil, formatNumber, formatRupees, formatShortDate, greeting } from '@/lib/format';
 import { tap } from '@/lib/haptics';
+import { formatAppointment } from '@/lib/appointments';
 import { isActive, stageLabel } from '@/lib/orders';
 
-const QUICK_ACTIONS: { icon: IconName; label: string; color: string; bg: string; href: '/prescriptions' | '/stores' | '/offers' | '/refer' }[] = [
-  { icon: 'eye', label: 'Prescriptions', color: Colors.purple, bg: Colors.purpleSoft, href: '/prescriptions' },
+const QUICK_ACTIONS: { icon: IconName; label: string; color: string; bg: string; href: '/book' | '/prescriptions' | '/stores' | '/refer' }[] = [
+  { icon: 'calendar', label: 'Book test', color: Colors.purple, bg: Colors.purpleSoft, href: '/book' },
+  { icon: 'eye', label: 'Prescriptions', color: Colors.sky, bg: Colors.skySoft, href: '/prescriptions' },
   { icon: 'location', label: 'Stores', color: Colors.coral, bg: Colors.coralSoft, href: '/stores' },
-  { icon: 'pricetags', label: 'Offers', color: Colors.sky, bg: Colors.skySoft, href: '/offers' },
   { icon: 'gift', label: 'Refer & Earn', color: Colors.tealDeep, bg: Colors.tealSoft, href: '/refer' },
 ];
 
@@ -35,7 +36,9 @@ function examsDueSoon() {
 
 export default function HomeScreen() {
   const customer = useCustomer();
-  const { coinBalance, tier, nextTier } = useAppState();
+  const { coinBalance, tier, nextTier, appointments } = useAppState();
+  const nextAppointment = appointments[0];
+  const nextStore = stores.find((s) => s.id === nextAppointment?.storeId);
   const activeOrder = orders.find(isActive);
   const dueExams = examsDueSoon();
 
@@ -131,6 +134,26 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Upcoming eye test */}
+      {nextAppointment && nextStore ? (
+        <Card
+          onPress={() => router.push({ pathname: '/appointment/[id]', params: { id: nextAppointment.id } })}
+          style={styles.reminder}
+        >
+          <IconBubble name="calendar" color={Colors.purple} background={Colors.purpleSoft} />
+          <View style={styles.flex}>
+            <Text variant="overline" color={Colors.purple}>
+              Upcoming eye test
+            </Text>
+            <Text variant="h3">{formatAppointment(nextAppointment)}</Text>
+            <Text variant="caption" numberOfLines={1}>
+              {nextAppointment.memberName.split(' ')[0]} · {nextStore.name}
+            </Text>
+          </View>
+          <Icon name="chevron-forward" size={20} color={Colors.textMuted} />
+        </Card>
+      ) : null}
+
       {/* Active order */}
       {activeOrder ? (
         <Card onPress={() => router.push({ pathname: '/order/[id]', params: { id: activeOrder.id } })} style={styles.orderCard}>
@@ -187,7 +210,7 @@ export default function HomeScreen() {
                 Free at any store, and you earn {EARN_RULES.eyeTest} SM Coins.
               </Text>
             </View>
-            <Button title="Stores" size="md" variant="primary" onPress={() => router.push('/stores')} />
+            <Button title="Book" size="md" variant="primary" onPress={() => router.push('/book')} />
           </Card>
         );
       })}
@@ -201,8 +224,8 @@ export default function HomeScreen() {
           contentContainerStyle={styles.carousel}
           style={styles.bleed}
         >
-          {offers.slice(0, 4).map((offer) => (
-            <OfferCard key={offer.id} offer={offer} compact />
+          {offers.filter((o) => !o.exclusiveTier).slice(0, 4).map((offer) => (
+            <FeaturedOffer key={offer.id} offer={offer} width={290} height={230} />
           ))}
         </ScrollView>
       </View>

@@ -7,10 +7,11 @@ import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AutoVideo } from '@/components/auto-video';
-import { Badge, IconBubble, SectionHeader } from '@/components/bits';
+import { Badge, SectionHeader } from '@/components/bits';
 import { Card } from '@/components/card';
 import { FrameArt } from '@/components/frame-art';
 import { Icon } from '@/components/icon';
+import { TopicThumb } from '@/components/learn/topic-thumb';
 import { Text } from '@/components/text';
 import { Colors, Gradients, Radius, Space } from '@/constants/theme';
 import { collections, heroVideo, promoVideos, type Collection } from '@/data/discover';
@@ -97,31 +98,38 @@ function CollectionTile({ collection }: { collection: Collection }) {
   );
 }
 
-// One entry card per lens guide; the guide page switches between options itself.
-function GuideCard({ title, subtitle, topics }: { title: string; subtitle: string; topics: LearnTopic[] }) {
+const openTopic = (id: string) => router.push({ pathname: '/learn/[topic]', params: { topic: id } });
+
+// A swipeable row of lens options, each with a mini illustration and description.
+function GuideRow({ title, subtitle, topics }: { title: string; subtitle: string; topics: LearnTopic[] }) {
   return (
-    <Card
-      style={styles.guide}
-      onPress={() => router.push({ pathname: '/learn/[topic]', params: { topic: topics[0].id } })}
-    >
-      <View style={styles.guideHead}>
-        <View style={styles.flex}>
-          <Text variant="h2">{title}</Text>
-          <Text variant="caption">{subtitle}</Text>
-        </View>
-        <View style={styles.guideArrow}>
-          <Icon name="arrow-forward" size={20} color={Colors.textOnDark} />
-        </View>
-      </View>
-      <View style={styles.guideIcons}>
-        {topics.map((t) => (
-          <IconBubble key={t.id} name={t.icon} color={t.accent.fg} background={t.accent.bg} size={38} />
-        ))}
-      </View>
-      <Text variant="caption" numberOfLines={2}>
-        {topics.map((t) => t.title).join(' · ')}
+    <View style={styles.section}>
+      <SectionHeader title={title} actionLabel="Open guide" onAction={() => openTopic(topics[0].id)} />
+      <Text variant="caption" style={styles.guideSubtitle}>
+        {subtitle}
       </Text>
-    </Card>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel} style={styles.bleed}>
+        {topics.map((t) => (
+          <Card key={t.id} style={styles.guideCard} padded={false} onPress={() => openTopic(t.id)}>
+            <View style={styles.guideThumb}>
+              <TopicThumb topic={t} />
+            </View>
+            <View style={styles.guideBody}>
+              <Text variant="h3">{t.title}</Text>
+              <Text variant="caption" numberOfLines={3}>
+                {t.intro}
+              </Text>
+              <View style={styles.guideCta}>
+                <Text variant="captionStrong" color={Colors.tealDeep}>
+                  See how it works
+                </Text>
+                <Icon name="arrow-forward" size={14} color={Colors.tealDeep} />
+              </View>
+            </View>
+          </Card>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -304,11 +312,8 @@ export default function DiscoverScreen() {
           </Tappable>
 
           {/* Lens guides */}
-          <View style={styles.section}>
-            <SectionHeader title="Lens guides" />
-            <GuideCard title="Choose lenses" subtitle={`${choose.length} lens types, explained visually`} topics={choose} />
-            <GuideCard title="Improve lenses" subtitle={`${improve.length} coatings, before and after`} topics={improve} />
-          </View>
+          <GuideRow title="Choose lenses" subtitle="Which lens type fits how you see" topics={choose} />
+          <GuideRow title="Improve lenses" subtitle="Coatings, before and after" topics={improve} />
 
           <Card onPress={() => router.push('/face-shapes')} style={styles.face}>
             <View style={styles.flex}>
@@ -320,10 +325,6 @@ export default function DiscoverScreen() {
               <FrameArt shape="round" color={Colors.coral} width={92} thickness={7} />
             </View>
           </Card>
-
-          <Text variant="caption" align="center" style={styles.credit}>
-            Prototype imagery: Pexels stock photos and videos.
-          </Text>
         </View>
       </ScrollView>
     </View>
@@ -421,18 +422,11 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-8deg' }],
   },
   gameE: { fontSize: 44, lineHeight: 50, fontWeight: '900', color: Colors.ink },
-  guide: { gap: Space.md },
-  guideHead: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
-  guideArrow: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  guideIcons: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
+  guideSubtitle: { marginTop: -Space.sm },
+  guideCard: { width: 240, overflow: 'hidden' },
+  guideThumb: { height: 132, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
+  guideBody: { padding: Space.md, gap: 4 },
+  guideCta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Space.xs },
   face: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   faceArt: { gap: 4 },
-  credit: { marginTop: -Space.lg },
 });

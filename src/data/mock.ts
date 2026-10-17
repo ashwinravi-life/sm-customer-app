@@ -300,8 +300,6 @@ export const stores: Store[] = [
     distanceKm: 1.2,
     latitude: 13.085,
     longitude: 80.2101,
-    services: ['Eye test', 'Contact lens', 'Repairs'],
-    photos: [PHOTOS.storeShelf, PHOTOS.storeEyeTest, PHOTOS.storeFitting],
   },
   {
     id: 'T013',
@@ -315,8 +313,6 @@ export const stores: Store[] = [
     distanceKm: 3.8,
     latitude: 13.0405,
     longitude: 80.1994,
-    services: ['Eye test', 'Kids corner', 'Repairs'],
-    photos: [PHOTOS.storeBrowsing, PHOTOS.storeFrameWall, PHOTOS.storeEyeTest],
   },
   {
     id: 'T027',
@@ -330,8 +326,6 @@ export const stores: Store[] = [
     distanceKm: 7.4,
     latitude: 12.9791,
     longitude: 80.2209,
-    services: ['Eye test', 'Contact lens'],
-    photos: [PHOTOS.storeWindow, PHOTOS.storeShelf, PHOTOS.storeFitting],
   },
   {
     id: 'T131',
@@ -345,8 +339,6 @@ export const stores: Store[] = [
     distanceKm: 318,
     latitude: 10.8281,
     longitude: 78.6863,
-    services: ['Eye test', 'Repairs'],
-    photos: [PHOTOS.storeFrameWall, PHOTOS.storeBrowsing, PHOTOS.storeEyeTest],
   },
 ];
 

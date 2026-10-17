@@ -8,6 +8,7 @@ import { FrameArt } from '@/components/frame-art';
 import { Icon } from '@/components/icon';
 import { FadeSwap } from '@/components/learn/primitives';
 import { Screen } from '@/components/screen';
+import { SwipePager } from '@/components/swipe-pager';
 import { Text } from '@/components/text';
 import { Colors, Radius, Space } from '@/constants/theme';
 import { collections } from '@/data/discover';
@@ -22,6 +23,8 @@ const FACE_PATHS: Record<FaceShapeGuide['id'], string> = {
   heart: 'M100 22 C162 22 182 58 180 100 C178 150 140 196 100 222 C60 196 22 150 20 100 C18 58 38 22 100 22 Z',
   oblong: 'M100 10 C146 10 160 50 160 100 L160 160 C160 205 132 230 100 230 C68 230 40 205 40 160 L40 100 C40 50 54 10 100 10 Z',
 };
+
+const frameName = (shape: string) => (shape === 'cateye' ? 'Cat-eye' : shape[0].toUpperCase() + shape.slice(1));
 
 function Face({ shape, frame }: { shape: FaceShapeGuide['id']; frame: FaceShapeGuide['best'][number] }) {
   return (
@@ -43,58 +46,29 @@ function Face({ shape, frame }: { shape: FaceShapeGuide['id']; frame: FaceShapeG
   );
 }
 
-export default function FaceShapesScreen() {
-  const [shapeId, setShapeId] = useState<FaceShapeGuide['id']>('oval');
-  const guide = faceShapes.find((f) => f.id === shapeId)!;
+function FacePage({ guide }: { guide: FaceShapeGuide }) {
   const [frameIndex, setFrameIndex] = useState(0);
-  const frame = guide.best[frameIndex % guide.best.length];
-
+  const frame = guide.best[frameIndex];
   const matches = collections
     .flatMap((c) => c.frames.filter((f) => guide.best.includes(f.shape) && !f.tint).map((f) => ({ ...f, collection: c })))
     .slice(0, 6);
 
   return (
-    <Screen title="Frames for your face">
-      <Text variant="caption">Pick the face shape closest to yours, then tap through the frames that suit it.</Text>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.shapes} style={styles.bleed}>
-        {faceShapes.map((f) => {
-          const active = f.id === shapeId;
-          return (
-            <Pressable
-              key={f.id}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              onPress={() => {
-                select();
-                setShapeId(f.id);
-                setFrameIndex(0);
-              }}
-              style={[styles.shapeChip, active && styles.shapeChipActive]}
-            >
-              <Svg width={30} height={36} viewBox="0 0 200 240">
-                <Path d={FACE_PATHS[f.id]} fill={active ? Colors.teal : 'none'} stroke={active ? Colors.teal : Colors.text} strokeWidth={14} />
-              </Svg>
-              <Text variant="captionStrong" color={active ? Colors.textOnDark : Colors.text}>
-                {f.name}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
+    <ScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
       <Card style={styles.preview}>
-        <FadeSwap fadeKey={`${shapeId}-${frame}`}>
-          <Face shape={shapeId} frame={frame} />
+        <Text variant="h2">{guide.name} face</Text>
+        <FadeSwap fadeKey={frame}>
+          <Face shape={guide.id} frame={frame} />
         </FadeSwap>
+        <Text variant="captionStrong">Tap a frame to try it on</Text>
         <View style={styles.frameRow}>
           {guide.best.map((shape, i) => {
-            const active = i === frameIndex % guide.best.length;
+            const active = i === frameIndex;
             return (
               <Pressable
                 key={shape}
                 accessibilityRole="button"
-                accessibilityLabel={`Try ${shape} frame`}
+                accessibilityLabel={`Try ${frameName(shape)} frame`}
                 onPress={() => {
                   select();
                   setFrameIndex(i);
@@ -102,8 +76,8 @@ export default function FaceShapesScreen() {
                 style={[styles.frameOption, active && styles.frameOptionActive]}
               >
                 <FrameArt shape={shape} color={active ? Colors.ink : Colors.textMuted} width={58} thickness={7} />
-                <Text variant="caption" color={active ? Colors.text : Colors.textMuted} style={styles.capitalize}>
-                  {shape === 'cateye' ? 'Cat-eye' : shape}
+                <Text variant="caption" color={active ? Colors.text : Colors.textMuted}>
+                  {frameName(shape)}
                 </Text>
               </Pressable>
             );
@@ -112,7 +86,6 @@ export default function FaceShapesScreen() {
       </Card>
 
       <Card style={styles.gap}>
-        <Text variant="h2">{guide.name} face</Text>
         <Text variant="caption">{guide.how}</Text>
         <View style={styles.tip}>
           <Icon name="bulb" size={18} color={Colors.coin} />
@@ -130,22 +103,66 @@ export default function FaceShapesScreen() {
 
       {matches.length ? (
         <View style={styles.gap}>
-          <Text variant="h2">Suits you from our collections</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.shapes} style={styles.bleed}>
+          <Text variant="h3">Suits you from our collections</Text>
+          <View style={styles.matches}>
             {matches.map((f) => (
               <Card
                 key={f.id}
                 style={styles.match}
                 onPress={() => router.push({ pathname: '/collection/[id]', params: { id: f.collection.id } })}
               >
-                <FrameArt shape={f.shape} color={f.color} width={120} />
-                <Text variant="captionStrong">{f.name}</Text>
+                <FrameArt shape={f.shape} color={f.color} width={110} />
+                <Text variant="captionStrong" numberOfLines={1}>
+                  {f.name}
+                </Text>
                 <Text variant="caption">{formatRupees(f.price)}</Text>
               </Card>
             ))}
-          </ScrollView>
+          </View>
         </View>
       ) : null}
+    </ScrollView>
+  );
+}
+
+export default function FaceShapesScreen() {
+  const [index, setIndex] = useState(0);
+
+  return (
+    <Screen title="Frames for your face" scroll={false}>
+      <View style={styles.shapes}>
+        {faceShapes.map((f, i) => {
+          const active = i === index;
+          return (
+            <Pressable
+              key={f.id}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              onPress={() => {
+                select();
+                setIndex(i);
+              }}
+              style={[styles.shapeChip, active && styles.shapeChipActive]}
+            >
+              <Svg width={22} height={26} viewBox="0 0 200 240">
+                <Path d={FACE_PATHS[f.id]} fill={active ? Colors.teal : 'none'} stroke={active ? Colors.teal : Colors.text} strokeWidth={16} />
+              </Svg>
+              <Text variant="caption" color={active ? Colors.textOnDark : Colors.text}>
+                {f.name}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <SwipePager
+        items={faceShapes}
+        index={index}
+        onIndexChange={setIndex}
+        keyOf={(f) => f.id}
+        labelOf={(f) => f.name}
+        renderPage={(f) => <FacePage guide={f} />}
+      />
     </Screen>
   );
 }
@@ -153,19 +170,18 @@ export default function FaceShapesScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   gap: { gap: Space.md },
-  bleed: { marginHorizontal: -Space.xl, flexGrow: 0 },
-  shapes: { gap: Space.sm, paddingHorizontal: Space.xl },
+  shapes: { flexDirection: 'row', gap: 6, paddingHorizontal: Space.xl, paddingVertical: Space.md },
   shapeChip: {
+    flex: 1,
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    gap: 2,
+    paddingVertical: 8,
     borderRadius: Radius.md,
     backgroundColor: Colors.surface,
-    minWidth: 70,
   },
   shapeChipActive: { backgroundColor: Colors.ink },
-  preview: { alignItems: 'center', gap: Space.lg },
+  page: { padding: Space.xl, paddingTop: Space.xs, paddingBottom: 40, gap: Space.lg },
+  preview: { alignItems: 'center', gap: Space.md },
   faceWrap: { width: 200, height: 240 },
   faceFrame: { position: 'absolute', top: 81, left: 30 },
   frameRow: { flexDirection: 'row', gap: Space.sm, flexWrap: 'wrap', justifyContent: 'center' },
@@ -178,7 +194,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   frameOptionActive: { borderColor: Colors.ink, backgroundColor: Colors.background },
-  capitalize: { textTransform: 'capitalize' },
   tip: { flexDirection: 'row', alignItems: 'flex-start', gap: Space.sm },
-  match: { width: 150, alignItems: 'center', gap: 4 },
+  matches: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.md },
+  match: { width: '47%', flexGrow: 1, alignItems: 'center', gap: 4, padding: Space.md },
 });

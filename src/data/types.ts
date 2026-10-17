@@ -108,8 +108,6 @@ export interface Offer {
   exclusiveTier?: 'Gold' | 'Platinum';
 }
 
-export type StoreService = 'Eye test' | 'Contact lens' | 'Repairs' | 'Kids corner';
-
 export interface Store {
   id: string;
   code: string;
@@ -123,8 +121,6 @@ export interface Store {
   distanceKm: number;
   latitude: number;
   longitude: number;
-  services: StoreService[];
-  photos: string[];
 }
 
 export interface Referral {
@@ -132,4 +128,15 @@ export interface Referral {
   name: string;
   joinedOn: string;
   status: 'joined' | 'purchased';
+}
+
+export interface Appointment {
+  id: string;
+  storeId: string;
+  memberId: string;
+  memberName: string;
+  // YYYY-MM-DD and 24h HH:MM
+  date: string;
+  time: string;
+  reason?: string;
 }

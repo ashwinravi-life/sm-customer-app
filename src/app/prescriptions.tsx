@@ -138,7 +138,7 @@ export default function PrescriptionsScreen() {
 
           <View style={styles.actions}>
             <Button title="Share" icon="share-outline" variant="outline" size="md" style={styles.flex} onPress={() => shareRx(member, latest)} />
-            <Button title="Find a store" icon="location-outline" size="md" style={styles.flex} onPress={() => router.push('/stores')} />
+            <Button title="Book eye test" icon="calendar-outline" size="md" style={styles.flex} onPress={() => router.push('/book')} />
           </View>
         </Card>
       ) : (

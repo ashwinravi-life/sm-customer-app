@@ -189,6 +189,24 @@ export const learnTopics: LearnTopic[] = [
   },
 ];
 
+// Short labels for tabs and the pager's Prev/Next buttons.
+export const TOPIC_SHORT_LABELS: Record<string, string> = {
+  'single-vision': 'Single vision',
+  bifocal: 'Bifocal',
+  progressive: 'Progressive',
+  comparison: 'Compare',
+  'myopia-control': 'Myopia kids',
+  'blur-to-clear': 'Blur to clear',
+  'blue-filter': 'Blue filter',
+  'anti-scratch': 'Anti-scratch',
+  hydrophobic: 'Hydrophobic',
+  smudge: 'Smudge-free',
+  'anti-reflection': 'Anti-reflection',
+  'anti-fog': 'Anti-fog',
+  polarized: 'Polarised',
+  photochromic: 'Photochromic',
+};
+
 export interface FaceShapeGuide {
   id: 'oval' | 'round' | 'square' | 'heart' | 'oblong';
   name: string;

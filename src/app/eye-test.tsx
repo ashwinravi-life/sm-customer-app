@@ -336,9 +336,9 @@ export default function EyeTestScreen() {
           </Text>
         </Card>
         <Button
-          title={`Find a store · +${EARN_RULES.eyeTest} coins for the test`}
-          icon="location-outline"
-          onPress={() => router.replace('/stores')}
+          title={`Book a free eye test · +${EARN_RULES.eyeTest} coins`}
+          icon="calendar-outline"
+          onPress={() => router.replace('/book')}
         />
         <Button title="Retake" variant="outline" icon="refresh" onPress={restart} />
         <Text variant="caption" align="center">

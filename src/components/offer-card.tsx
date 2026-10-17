@@ -46,16 +46,16 @@ export function expiryLabel(validTill: string) {
   return { text: `Ends in ${days} days`, urgent: days <= 7 };
 }
 
-function CodeBox({ code, dark }: { code: string; dark?: boolean }) {
+function CodeBox({ code }: { code: string }) {
   const { copied, copy } = useCopy(code);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Copy code ${code}`}
       onPress={copy}
-      style={({ pressed }) => [styles.codeBox, dark && styles.codeBoxDark, pressed && { opacity: 0.85 }]}
+      style={({ pressed }) => [styles.codeBox, pressed && { opacity: 0.85 }]}
     >
-      <Text style={[styles.code, dark && { color: Colors.textOnDark }]}>{code}</Text>
+      <Text style={styles.code}>{code}</Text>
       <View style={[styles.copy, copied && styles.copied]}>
         <Icon name={copied ? 'checkmark' : 'copy-outline'} size={14} color={copied ? Colors.ink : Colors.textOnDark} />
         <Text variant="captionStrong" color={copied ? Colors.ink : Colors.textOnDark}>
@@ -67,13 +67,13 @@ function CodeBox({ code, dark }: { code: string; dark?: boolean }) {
 }
 
 // Ticket-style coupon: discount stub on the left, details on the right.
-export function OfferCard({ offer, compact }: { offer: Offer; compact?: boolean }) {
+export function OfferCard({ offer }: { offer: Offer }) {
   const accent = OFFER_ACCENTS[offer.accent];
   const expiry = expiryLabel(offer.validTill);
   const [open, setOpen] = useState(false);
 
   return (
-    <View style={[styles.ticket, compact && styles.compact]}>
+    <View style={styles.ticket}>
       <View style={styles.ticketRow}>
         <View style={[styles.stub, { backgroundColor: accent.solid }]}>
           <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
@@ -104,11 +104,9 @@ export function OfferCard({ offer, compact }: { offer: Offer; compact?: boolean 
           <Text variant="h3" numberOfLines={2}>
             {offer.title}
           </Text>
-          {!compact ? (
-            <Text variant="caption" numberOfLines={2}>
-              {offer.description}
-            </Text>
-          ) : null}
+          <Text variant="caption" numberOfLines={2}>
+            {offer.description}
+          </Text>
           <View style={styles.metaRow}>
             <Icon name="time-outline" size={13} color={expiry.urgent ? Colors.danger : Colors.textMuted} />
             <Text variant="caption" color={expiry.urgent ? Colors.danger : Colors.textMuted}>
@@ -123,21 +121,19 @@ export function OfferCard({ offer, compact }: { offer: Offer; compact?: boolean 
         <View style={styles.flex}>
           <CodeBox code={offer.code} />
         </View>
-        {!compact ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ expanded: open }}
-            hitSlop={8}
-            onPress={() => {
-              select();
-              setOpen(!open);
-            }}
-            style={styles.detailsToggle}
-          >
-            <Text variant="captionStrong">Details</Text>
-            <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
-          </Pressable>
-        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: open }}
+          hitSlop={8}
+          onPress={() => {
+            select();
+            setOpen(!open);
+          }}
+          style={styles.detailsToggle}
+        >
+          <Text variant="captionStrong">Details</Text>
+          <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
+        </Pressable>
       </View>
 
       {open ? (
@@ -162,12 +158,12 @@ export function OfferCard({ offer, compact }: { offer: Offer; compact?: boolean 
   );
 }
 
-// Photo-led hero banner for the top of the offers screen.
-export function FeaturedOffer({ offer, width }: { offer: Offer; width: number }) {
+// Photo-led banner for in-store offers. No code needed: the offer applies at billing.
+export function FeaturedOffer({ offer, width, height = 300 }: { offer: Offer; width: number; height?: number }) {
   const accent = OFFER_ACCENTS[offer.accent];
   const expiry = expiryLabel(offer.validTill);
   return (
-    <View style={[styles.featured, { width }]}>
+    <View style={[styles.featured, { width, height }]}>
       {offer.image ? (
         <Image source={{ uri: offer.image }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
       ) : (
@@ -200,7 +196,10 @@ export function FeaturedOffer({ offer, width }: { offer: Offer; width: number })
         <Text variant="h2" color={Colors.textOnDark}>
           {offer.title}
         </Text>
-        <CodeBox code={offer.code} dark />
+        <Text variant="caption" color={Colors.textOnDarkMuted} numberOfLines={2}>
+          {offer.description}
+          {offer.minOrder ? ` Min order ${formatRupees(offer.minOrder)}.` : ''}
+        </Text>
       </View>
     </View>
   );
@@ -211,7 +210,6 @@ const STUB = 96;
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   ticket: { backgroundColor: Colors.surface, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.card },
-  compact: { width: 290 },
   ticketRow: { flexDirection: 'row' },
   stub: { width: STUB, alignItems: 'center', justifyContent: 'center', paddingVertical: Space.lg, paddingHorizontal: 6 },
   value: { fontFamily: Fonts.black, fontSize: 28, lineHeight: 32, color: Colors.ink, letterSpacing: -0.5 },
@@ -254,7 +252,6 @@ const styles = StyleSheet.create({
     height: 44,
     backgroundColor: Colors.background,
   },
-  codeBoxDark: { backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.35)' },
   code: { fontFamily: Fonts.black, fontSize: 16, letterSpacing: 1.5, color: Colors.text },
   copy: {
     flexDirection: 'row',
@@ -280,7 +277,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   featured: {
-    height: 300,
     borderRadius: Radius.xl,
     overflow: 'hidden',
     backgroundColor: Colors.ink,

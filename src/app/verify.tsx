@@ -6,7 +6,7 @@ import { AuthShell } from '@/components/auth-shell';
 import { Button } from '@/components/button';
 import { CODE_LENGTH, CodeInput } from '@/components/code-input';
 import { Text } from '@/components/text';
-import { Colors, Radius, Space } from '@/constants/theme';
+import { Colors, Space } from '@/constants/theme';
 import { useAppState } from '@/lib/app-state';
 import { error as errorHaptic, success } from '@/lib/haptics';
 
@@ -103,12 +103,6 @@ export default function VerifyScreen() {
           </Pressable>
         )}
       </View>
-
-      <View style={styles.demoHint}>
-        <Text variant="caption" align="center">
-          Prototype: use code <Text variant="captionStrong">{MOCK_CODE}</Text>
-        </Text>
-      </View>
     </AuthShell>
   );
 }
@@ -118,5 +112,4 @@ const styles = StyleSheet.create({
   numberRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   codeBlock: { gap: Space.md },
   resendRow: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  demoHint: { backgroundColor: Colors.background, borderRadius: Radius.sm, paddingVertical: 8 },
 });
