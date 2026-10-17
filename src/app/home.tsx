@@ -16,7 +16,7 @@ export default function HomeScreen() {
         <AppText variant="title" style={styles.cardText}>
           Welcome
         </AppText>
-        <AppText style={styles.cardText}>You're logged in as +91 {mobile}</AppText>
+        <AppText style={styles.cardText}>Logged in as +91 {mobile}</AppText>
       </View>
 
       <AppText variant="muted">Home screen coming soon.</AppText>
